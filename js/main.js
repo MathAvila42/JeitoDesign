@@ -1,3 +1,18 @@
+// 1. CONFIGURAÇÃO DO FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyBxgFZeFlW8BwV3dqYjT-FM6MnB7-2I3lU",
+  authDomain: "jeito-design.firebaseapp.com",
+  projectId: "jeito-design",
+  storageBucket: "jeito-design.firebasestorage.app",
+  messagingSenderId: "73892657193",
+  appId: "1:73892657193:web:951d0b914dc5a5ea16c438"
+};
+
+// 2. INICIAR O FIREBASE
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();      
+const storage = firebase.storage();
+
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const PAGES = ['home','jeito','servico','projetos','conteudos','contato','admin'];
 const PAGE_MAP = {
