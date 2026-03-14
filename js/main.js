@@ -500,5 +500,41 @@ document.addEventListener('change', function(e){
   }
 });
 
+// ── EMAILJS: ENVIO DE FORMULÁRIO ──────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  const formContato = document.getElementById('form-contato');
+  
+  if(formContato) {
+    formContato.addEventListener('submit', function(event) {
+      event.preventDefault(); // Impede a página de recarregar
+      
+      const btnEnviar = document.getElementById('btn-enviar');
+      const textoOriginal = btnEnviar.innerText;
+      
+      // Muda o texto do botão para mostrar que está carregando
+      btnEnviar.innerText = 'Enviando...';
+      btnEnviar.disabled = true;
+
+      // ATENÇÃO: Substitua pelos seus IDs gerados no passo 1
+      const serviceID = 'Sservice_sn6e8xg';
+      const templateID = 'template_u4i4ypt';
+
+      // Dispara o e-mail
+      emailjs.sendForm(serviceID, templateID, this)
+        .then(function() {
+          alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
+          formContato.reset(); // Limpa os campos do formulário
+          btnEnviar.innerText = textoOriginal;
+          btnEnviar.disabled = false;
+        }, function(error) {
+          alert('Ops! Ocorreu um erro ao enviar. Tente novamente mais tarde.');
+          console.log('Erro do EmailJS:', error);
+          btnEnviar.innerText = textoOriginal;
+          btnEnviar.disabled = false;
+        });
+    });
+  }
+});
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 renderBlogGrid();
