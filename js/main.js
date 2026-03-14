@@ -13,6 +13,58 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();      
 const storage = firebase.storage();
 
+// --- FUNÇÃO PARA PUBLICAR PROJETOS ---
+async function publishProject() {
+    // Pegando os elementos da tela
+    const title = document.getElementById('proj-title').value;
+    const tipo = document.getElementById('proj-tipo').value;
+    const desc = document.getElementById('proj-desc').value;
+    const file = document.getElementById('proj-img-file').files[0];
+    const btn = document.getElementById('proj-publish-btn');
+
+    // Validação simples
+    if (!title || !file) {
+        alert("Por favor, preencha o título e selecione uma imagem!");
+        return;
+    }
+
+    try {
+        btn.disabled = true;
+        btn.innerText = "Enviando para o Google...";
+
+        // 1. Upload da Imagem para o Storage
+        const storageRef = storage.ref('projetos/' + Date.now() + "_" + file.name);
+        await storageRef.put(file);
+        const downloadURL = await storageRef.getDownloadURL();
+
+        // 2. Salvar dados no Firestore
+        await db.collection("projetos").add({
+            titulo: title,
+            tipo: tipo,
+            descricao: desc,
+            imagem: downloadURL,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("Projeto cadastrado com sucesso! 🎉");
+        
+        // Limpar campos e fechar form
+        document.getElementById('proj-title').value = "";
+        document.getElementById('proj-img-file').value = "";
+        hideProjectForm(); // Chama a função que você já tem para esconder o form
+        
+        // Opcional: recarregar a lista (veremos isso a seguir)
+        location.reload(); 
+
+    } catch (error) {
+        console.error("Erro ao publicar:", error);
+        alert("Erro ao salvar projeto. Verifique o console.");
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Adicionar projeto";
+    }
+}
+
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const PAGES = ['home','jeito','servico','projetos','conteudos','contato','admin'];
 const PAGE_MAP = {
