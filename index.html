@@ -618,16 +618,12 @@
       </a>
     </div>
   </div>
-  <div class="rv d1">
-    <div class="form-g"><label class="form-l">Nome</label><input type="text" class="form-i" id="c-nome" placeholder="Seu nome completo"/></div>
-    <div class="form-g"><label class="form-l">Empresa</label><input type="text" class="form-i" id="c-empresa" placeholder="Nome da empresa ou marca"/></div>
-    <div class="form-g"><label class="form-l">Site ou Instagram</label><input type="text" class="form-i" id="c-site" placeholder="@suamarca ou www.suamarca.com"/></div>
-    <div class="form-g"><label class="form-l">O que sua empresa faz?</label><textarea class="form-ta" id="c-faz" placeholder="Descreva brevemente..."></textarea></div>
-    <div class="form-g"><label class="form-l">Por que você quer trabalhar a identidade visual agora?</label><textarea class="form-ta" id="c-porque" placeholder="Conte sobre o momento atual da sua marca..."></textarea></div>
-    <div id="form-msg" style="display:none;padding:16px;margin-bottom:16px;font-size:13px;border-radius:2px;"></div>
-    <button class="btn-b" id="form-submit-btn" onclick="submitForm(event)">Solicitar proposta</button>
-  </div>
-</div>
+<form class="contact-form" onsubmit="event.preventDefault(); alert('Mensagem enviada com sucesso! (Simulação)');">
+  <input type="text" class="contact-input" placeholder="Seu nome"/>
+  <input type="email" class="contact-input" placeholder="Seu e-mail"/>
+  <textarea class="contact-textarea" placeholder="Como podemos te ajudar?"></textarea>
+  <button type="submit" class="contact-btn">Enviar mensagem</button>
+</form>
 
 <footer>
   <div class="ft">
@@ -788,6 +784,19 @@ const LOGO_P ="/images/logo-preto.png";
 })();
 </script>
 
+<!-- --EMAIL FORM ──────────────────────────────────────────────────────── -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function() {
+      // SUBSTITUA PELA SUA PUBLIC KEY
+      emailjs.init("UiYfDgQXVJOzGarDd");
+    })();
+  </script>
+
+  <script src="/main.js"></script>
+</body>
+</html>
+  
 <!-- ── MAIN SCRIPT ────────────────────────────────────────────────────── -->
 <script src="js/main.js" defer></script>
 
