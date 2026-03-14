@@ -619,11 +619,27 @@
     </div>
   </div>
   
-<form id="form-contato" class="contact-form">
-  <input type="text" name="user_name" class="contact-input" placeholder="Seu nome" required/>
-  <input type="email" name="user_email" class="contact-input" placeholder="Seu e-mail" required/>
-  <textarea name="message" class="contact-textarea" placeholder="Como podemos te ajudar?" required></textarea>
-  <button type="submit" id="btn-enviar" class="contact-btn">Enviar mensagem</button>
+<form id="form-contato" onsubmit="event.preventDefault();">
+  
+  <div class="form-g">
+    <label class="form-l">Seu nome</label>
+    <input type="text" name="user_name" class="form-i" placeholder="Digite seu nome..." required/>
+  </div>
+
+  <div class="form-g">
+    <label class="form-l">Seu e-mail</label>
+    <input type="email" name="user_email" class="form-i" placeholder="Digite seu melhor e-mail..." required/>
+  </div>
+
+  <div class="form-g">
+    <label class="form-l">Como podemos te ajudar?</label>
+    <textarea name="message" class="form-ta" placeholder="Conte um pouco sobre o seu projeto..." required></textarea>
+  </div>
+
+  <button type="submit" id="btn-enviar" class="s-link" style="background:none; border:none; border-bottom:1px solid var(--black); cursor:pointer; font-family:var(--font); padding:8px 0;">
+    Enviar Mensagem
+  </button>
+
 </form>
 
 <footer>
