@@ -1,0 +1,11 @@
+IMAGENS NECESSÁRIAS — adicione antes do deploy:
+
+1. logo-branco.png   → Logo branca para fundos escuros (ex: 300x90px, PNG transparente)
+2. logo-preto.png    → Logo preta para fundos claros (ex: 300x90px, PNG transparente)
+3. og-image.jpg      → Imagem para compartilhamento social (1200x630px, JPG)
+4. favicon-32.png    → Ícone da aba do navegador (32x32px, PNG)
+5. favicon-16.png    → Ícone da aba do navegador pequeno (16x16px, PNG)
+6. apple-touch-icon.png → Ícone iOS (180x180px, PNG)
+
+Dica: use as logos que você já tem (Jeito_-_Logo_novo_-_Branco.png e Preto.png)
+exportando nos tamanhos corretos.
