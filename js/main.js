@@ -1,4 +1,3 @@
-// 1. CONFIGURAÇÃO DO FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyBxgFZeFlW8BwV3dqYjT-FM6MnB7-2I3lU",
   authDomain: "jeito-design.firebaseapp.com",
