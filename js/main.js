@@ -602,5 +602,19 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// Função especial para abrir o admin pelo console
+function abrirAdmin() {
+    // Esconde todas as páginas normais
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    // Mostra o contentor do admin
+    const adminDiv = document.getElementById('admin-container') || document.querySelector('.admin-wrap');
+    if(adminDiv) {
+        adminDiv.style.display = 'block';
+        nav('admin'); // Tenta disparar a sua lógica de navegação
+    } else {
+        console.error("Não encontrei a div de admin no HTML");
+    }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 renderBlogGrid();
