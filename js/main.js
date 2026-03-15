@@ -616,5 +616,23 @@ function abrirAdmin() {
     }
 }
 
+// ── ROTEAMENTO /admin ─────────────────────────────────────────────────────────
+(function() {
+  var PAGE_MAP = {
+    '/': 'home', '/home': 'home', '/jeito': 'jeito',
+    '/servico': 'servico', '/projetos': 'projetos',
+    '/conteudos': 'conteudos', '/contato': 'contato', '/admin': 'admin'
+  };
+  var path = location.pathname.replace(/\/+$/, '') || '/';
+  var page = PAGE_MAP[path];
+  if (page && page !== 'home') {
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.classList.remove('active');
+    });
+    var target = document.getElementById('pg-' + page);
+    if (target) target.classList.add('active');
+  }
+})();
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 renderBlogGrid();
