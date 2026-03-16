@@ -1,4 +1,3 @@
-
 :root {
   --black: #0A0A0A;
   --white: #FFFFFF;
@@ -463,3 +462,44 @@ footer { background:var(--black);color:var(--white);padding:48px 64px; }
   .post-view { padding:80px 24px; }
   .blog-hero-strip, .blog-empty { padding-left:24px;padding-right:24px; }
 }
+
+/* SHARE BUTTONS */
+.post-share {
+  margin-top: 56px;
+  padding-top: 40px;
+  border-top: 1px solid var(--gray-100);
+}
+.post-share-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-bottom: 20px;
+}
+.post-share-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid var(--gray-100);
+  background: var(--white);
+  color: var(--black);
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.share-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+.share-btn:hover { background: var(--black); color: var(--white); border-color: var(--black); }
+.share-linkedin:hover { background: #0A66C2; border-color: #0A66C2; color: var(--white); }
+.share-whatsapp:hover { background: #25D366; border-color: #25D366; color: var(--white); }
