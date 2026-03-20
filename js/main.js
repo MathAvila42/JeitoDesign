@@ -630,11 +630,11 @@ window.addEventListener('DOMContentLoaded', function() {
       btnEnviar.disabled = true;
 
       // ATENÇÃO: Substitua pelos seus IDs gerados no passo 1
-      const serviceID = 'service_48c9hab';
+      const serviceID = 'service_sn6e8xg';
       const templateID = 'template_u4i4ypt';
 
       // Dispara o e-mail
-      emailjs.sendForm('service_48c9hab', 'template_u4i4ypt', this)
+      emailjs.sendForm('service_sn6e8xg', 'template_u4i4ypt', this)
         .then(function() {
           alert('Mensagem enviada com sucesso! Entraremos em contato em breve.');
           formContato.reset(); // Limpa os campos do formulário
