@@ -127,7 +127,7 @@ window.addEventListener('scroll', function(){
 function toggleMob(){ document.getElementById('mob').classList.toggle('open'); }
 function closeMob(){ document.getElementById('mob').classList.remove('open'); }
 
-// ── NAV DROPDOWN ──────────────────────────────────────────────────────────────
+// ── NAV DROPDOWN HORIZONTAL ───────────────────────────────────────────────────
 function openNavMenu(){
   var dd = document.getElementById('nav-dropdown');
   var tr = document.getElementById('nav-menu-trigger');
@@ -144,6 +144,14 @@ function closeNavMenu(){
   tr.classList.remove('open');
   tr.setAttribute('aria-expanded','false');
 }
+// Keep open when hovering trigger or dropdown
+document.addEventListener('mouseover', function(e){
+  var tr = document.getElementById('nav-menu-trigger');
+  var dd = document.getElementById('nav-dropdown');
+  if(!tr||!dd) return;
+  if(tr.contains(e.target)||dd.contains(e.target)) return;
+  // If moved to somewhere outside both, close
+});
 document.addEventListener('click',function(e){
   var tr = document.getElementById('nav-menu-trigger');
   var dd = document.getElementById('nav-dropdown');
