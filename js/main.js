@@ -16,9 +16,9 @@ try {
 } catch(e) { console.warn('Firebase:', e); }
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
-const PAGES = ['home','quemsomos','servico','projetos','conteudos','contato','admin'];
+const PAGES = ['home','jeito','servico','projetos','conteudos','contato','admin'];
 const PAGE_MAP = {
-  '/':'home', '/home':'home', '/quemsomos':'quemsomos', '/servico':'servico',
+  '/':'home', '/home':'home', '/jeito':'jeito', '/servico':'servico',
   '/projetos':'projetos', '/conteudos':'conteudos', '/contato':'contato',
   '/admin':'admin'
 };
@@ -77,6 +77,33 @@ window.addEventListener('scroll', function(){
 // ── MOBILE MENU ───────────────────────────────────────────────────────────────
 function toggleMob(){ document.getElementById('mob').classList.toggle('open'); }
 function closeMob(){ document.getElementById('mob').classList.remove('open'); }
+
+// ── NAV DROPDOWN ──────────────────────────────────────────────────────────────
+function openNavMenu(){
+  var dd = document.getElementById('nav-dropdown');
+  var trigger = document.getElementById('nav-menu-trigger');
+  if(!dd || !trigger) return;
+  dd.classList.add('open');
+  trigger.classList.add('open');
+  trigger.setAttribute('aria-expanded','true');
+}
+function closeNavMenu(){
+  var dd = document.getElementById('nav-dropdown');
+  var trigger = document.getElementById('nav-menu-trigger');
+  if(!dd || !trigger) return;
+  dd.classList.remove('open');
+  trigger.classList.remove('open');
+  trigger.setAttribute('aria-expanded','false');
+}
+// Close dropdown on click outside
+document.addEventListener('click', function(e){
+  var wrap = document.getElementById('nav-menu-trigger');
+  var dd = document.getElementById('nav-dropdown');
+  if(!wrap || !dd) return;
+  if(!wrap.contains(e.target) && !dd.contains(e.target)){
+    closeNavMenu();
+  }
+});
 
 // ── SCROLL REVEAL ─────────────────────────────────────────────────────────────
 function initReveal(){
@@ -653,7 +680,7 @@ window.addEventListener('DOMContentLoaded', function() {
 // ── ROTEAMENTO /admin ─────────────────────────────────────────────────────────
 (function() {
   var PAGE_MAP = {
-    '/': 'home', '/home': 'home', '/quemsomos': 'quemsomos',
+    '/': 'home', '/home': 'home', '/jeito': 'jeito',
     '/servico': 'servico', '/projetos': 'projetos',
     '/conteudos': 'conteudos', '/contato': 'contato', '/admin': 'admin'
   };
