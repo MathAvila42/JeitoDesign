@@ -95,6 +95,16 @@
   <a href="javascript:void(0)" onclick="nav('contato');closeMob()">Contato</a>
 </div>
 
+<!-- Horizontal nav dropdown (full width, below nav) -->
+<div class="nav-dropdown" id="nav-dropdown" onmouseleave="closeNavMenu()">
+  <a href="javascript:void(0)" onclick="nav('home');closeNavMenu();return false">Home</a>
+  <a href="javascript:void(0)" onclick="nav('jeito');closeNavMenu();return false">Jeito</a>
+  <a href="javascript:void(0)" onclick="nav('servico');closeNavMenu();return false">Impacto</a>
+  <a href="javascript:void(0)" onclick="nav('projetos');closeNavMenu();return false">Projetos</a>
+  <a href="javascript:void(0)" onclick="nav('conteudos');closeNavMenu();return false">Conteúdos</a>
+  <a href="javascript:void(0)" onclick="nav('contato');closeNavMenu();return false">Contato</a>
+</div>
+
 <nav id="nav">
   <!-- Esquerda: redes sociais -->
   <div class="nav-social">
@@ -116,23 +126,14 @@
     </a>
   </div>
 
-  <!-- Direita: menu hover -->
+  <!-- Direita: Menu trigger + mobile burger -->
   <div class="nav-menu-wrap">
     <button class="nav-menu-trigger" id="nav-menu-trigger"
       onmouseenter="openNavMenu()"
-      onclick="openNavMenu()"
       aria-expanded="false">
       Menu
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
-    <div class="nav-dropdown" id="nav-dropdown" onmouseleave="closeNavMenu()">
-      <a href="javascript:void(0)" onclick="nav('home');closeNavMenu();return false">Home</a>
-      <a href="javascript:void(0)" onclick="nav('jeito');closeNavMenu();return false">Jeito</a>
-      <a href="javascript:void(0)" onclick="nav('servico');closeNavMenu();return false">Impacto</a>
-      <a href="javascript:void(0)" onclick="nav('projetos');closeNavMenu();return false">Projetos</a>
-      <a href="javascript:void(0)" onclick="nav('conteudos');closeNavMenu();return false">Conteúdos</a>
-      <a href="javascript:void(0)" onclick="nav('contato');closeNavMenu();return false">Contato</a>
-    </div>
     <div class="nav-burger" onclick="toggleMob()"><span></span><span></span><span></span></div>
   </div>
 </nav>
@@ -144,8 +145,8 @@
   <div class="hero-bg"></div>
   <div class="hero-overlay"></div>
   <div class="hero-content">
-    <p class="hero-tag">ESTÚDIO DE IDENTIDADE VISUAL</p>
-    <h1 class="hero-h1">Identidade visual<br><strong>estratégica</strong> para marcas<br>que <em>querem crescer.</em></h1>
+    <p class="hero-tag">SOMOS UM ESTÚDIO BRASILEIRO DE DESIGN</p>
+    <h1 class="hero-h1">A Jeito é um estúdio autoral focado na criação e evolução de <em>marcas.</em></h1>
     <div class="hero-btns">
       <a href="javascript:void(0)" class="btn-ow" onclick="nav('projetos');return false">Ver projetos</a>
     </div>
@@ -432,7 +433,7 @@
 
 
 <div class="page" id="pg-jeito">
-<div class="page-hero" style="padding-top:100px;">
+<div class="page-hero">
   <div class="ph-bg">J</div>
   <p class="ph-label">O estúdio</p>
   <h1 class="ph-h1">Estratégia.<br><em>Processo.</em><br>Impacto.</h1>
