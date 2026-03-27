@@ -127,36 +127,18 @@ window.addEventListener('scroll', function(){
 function toggleMob(){ document.getElementById('mob').classList.toggle('open'); }
 function closeMob(){ document.getElementById('mob').classList.remove('open'); }
 
-// ── NAV DROPDOWN HORIZONTAL ───────────────────────────────────────────────────
+// ── NAV MENU (JS apenas para acessibilidade/click fora) ──────────────────────
 function openNavMenu(){
-  var dd = document.getElementById('nav-dropdown');
-  var tr = document.getElementById('nav-menu-trigger');
-  if(!dd||!tr) return;
-  dd.classList.add('open');
-  tr.classList.add('open');
-  tr.setAttribute('aria-expanded','true');
+  var w = document.getElementById('nav-menu-wrap');
+  if(w) w.classList.add('open');
 }
 function closeNavMenu(){
-  var dd = document.getElementById('nav-dropdown');
-  var tr = document.getElementById('nav-menu-trigger');
-  if(!dd||!tr) return;
-  dd.classList.remove('open');
-  tr.classList.remove('open');
-  tr.setAttribute('aria-expanded','false');
+  var w = document.getElementById('nav-menu-wrap');
+  if(w) w.classList.remove('open');
 }
-// Keep open when hovering trigger or dropdown
-document.addEventListener('mouseover', function(e){
-  var tr = document.getElementById('nav-menu-trigger');
-  var dd = document.getElementById('nav-dropdown');
-  if(!tr||!dd) return;
-  if(tr.contains(e.target)||dd.contains(e.target)) return;
-  // If moved to somewhere outside both, close
-});
-document.addEventListener('click',function(e){
-  var tr = document.getElementById('nav-menu-trigger');
-  var dd = document.getElementById('nav-dropdown');
-  if(!tr||!dd) return;
-  if(!tr.contains(e.target)&&!dd.contains(e.target)) closeNavMenu();
+document.addEventListener('click', function(e){
+  var w = document.getElementById('nav-menu-wrap');
+  if(w && !w.contains(e.target)) closeNavMenu();
 });
 
 // ── SCROLL REVEAL ─────────────────────────────────────────────────────────────
