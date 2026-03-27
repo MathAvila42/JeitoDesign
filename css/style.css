@@ -35,19 +35,18 @@ body {
   backdrop-filter:blur(8px);
 }
 
-/* Esquerda: social icons */
+/* Esquerda: ícones sociais */
 .nav-social {
   display:flex;align-items:center;gap:18px;
   justify-content:flex-start;
 }
 .nav-soc-link {
-  color:rgba(255,255,255,.65);
+  color:rgba(255,255,255,.6);
   display:flex;align-items:center;
   transition:color .2s;
   text-decoration:none;
 }
 .nav-soc-link:hover { color:var(--white); }
-.nav-soc-link svg { display:block; }
 
 /* Centro: logo */
 .nav-logo {
@@ -56,67 +55,71 @@ body {
 .nav-logo a { display:flex;align-items:center; }
 .nav-logo img { height:26px;width:auto;display:block; }
 
-/* Direita: menu trigger + dropdown horizontal */
-.nav-menu-wrap {
+/* Direita: wrapper geral */
+.nav-right {
   display:flex;justify-content:flex-end;align-items:center;
-  position:static;
 }
 
+/* Menu wrap — contém trigger + links inline */
+.nav-menu-wrap {
+  display:flex;align-items:center;
+  position:relative;
+  cursor:default;
+}
+
+/* Trigger "Menu" */
 .nav-menu-trigger {
   background:none;border:none;cursor:pointer;
   font-family:var(--font);font-size:11px;font-weight:600;
   letter-spacing:.18em;text-transform:uppercase;
   color:var(--white);
-  display:flex;align-items:center;gap:6px;
+  display:flex;align-items:center;gap:5px;
   padding:6px 0;
-  transition:opacity .2s;
   white-space:nowrap;
-  position:relative;
-  z-index:2;
+  flex-shrink:0;
+  transition:opacity .2s;
 }
 .nav-menu-trigger:hover { opacity:.6; }
-.nav-menu-trigger svg { transition:transform .25s;flex-shrink:0; }
-.nav-menu-trigger.open svg { transform:rotate(180deg); }
 
-/* Horizontal dropdown — spans full nav width, sits below nav */
-.nav-dropdown {
-  position:fixed;
-  top:69px;
-  left:0;right:0;
-  background:rgba(10,10,10,0.98);
-  border-bottom:1px solid rgba(255,255,255,.08);
-  backdrop-filter:blur(8px);
-  padding:20px 48px;
-  display:flex;
-  flex-direction:row;
-  align-items:center;
-  gap:40px;
+/* Seta rotaciona quando aberto */
+.nav-menu-arrow { transition:transform .22s;flex-shrink:0; }
+.nav-menu-wrap:hover .nav-menu-arrow,
+.nav-menu-wrap.open .nav-menu-arrow { transform:rotate(90deg); }
+
+/* Links que aparecem À DIREITA do "Menu" ao hover */
+.nav-inline-links {
+  display:flex;align-items:center;gap:0;
+  overflow:hidden;
+  max-width:0;
   opacity:0;
   pointer-events:none;
-  transform:translateY(-8px);
-  transition:opacity .22s ease, transform .22s ease;
-  z-index:199;
-}
-.nav-dropdown.open {
-  opacity:1;
-  pointer-events:all;
-  transform:translateY(0);
-}
-.nav-dropdown a {
-  font-family:var(--font);font-size:10px;font-weight:500;
-  letter-spacing:.14em;text-transform:uppercase;
-  text-decoration:none;
-  color:rgba(255,255,255,.6);
-  transition:color .15s;
+  transition:max-width .35s cubic-bezier(.4,0,.2,1), opacity .25s ease, gap .3s;
   white-space:nowrap;
 }
-.nav-dropdown a:hover { color:var(--white); }
+.nav-menu-wrap:hover .nav-inline-links,
+.nav-menu-wrap.open .nav-inline-links {
+  max-width:600px;
+  opacity:1;
+  pointer-events:all;
+  gap:28px;
+  padding-left:28px;
+}
+.nav-inline-links a {
+  font-family:var(--font);font-size:10px;font-weight:500;
+  letter-spacing:.13em;text-transform:uppercase;
+  text-decoration:none;
+  color:rgba(255,255,255,.65);
+  transition:color .15s;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.nav-inline-links a:hover { color:var(--white); }
 
-/* Mobile burger */
-.nav-burger { display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;margin-left:16px; }
+/* Mobile burger (hidden desktop) */
+.nav-burger { display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px; }
 .nav-burger span { display:block;width:22px;height:1px;background:var(--white); }
 
-/* Mobile close btn */
+/* Mobile close */
 .mob-close {
   position:absolute;top:24px;right:24px;
   background:none;border:none;color:var(--white);
@@ -511,9 +514,8 @@ footer { background:var(--black);color:var(--white);padding:48px 64px; }
 /* RESPONSIVE */
 @media(max-width:900px) {
   #nav { padding:16px 20px; }
-  .nav-social { gap:12px; }
-  .nav-menu-trigger { display:none; }
-  .nav-dropdown { display:none !important; }
+  .nav-social { display:none; }
+  .nav-menu-wrap { display:none; }
   .nav-burger { display:flex; }
   .sec, footer { padding:80px 24px !important; }
   .hero { padding:0 24px 80px; }
