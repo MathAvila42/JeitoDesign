@@ -34,97 +34,57 @@ body {
   border-bottom:1px solid rgba(255,255,255,.08);
   backdrop-filter:blur(8px);
 }
-
 /* Esquerda: ícones sociais */
 .nav-social {
-  display:flex;align-items:center;gap:18px;
-  justify-content:flex-start;
+  display:flex;align-items:center;gap:18px;justify-content:flex-start;
 }
 .nav-soc-link {
-  color:rgba(255,255,255,.6);
-  display:flex;align-items:center;
-  transition:color .2s;
-  text-decoration:none;
+  color:rgba(255,255,255,.6);display:flex;align-items:center;
+  transition:color .2s;text-decoration:none;
 }
 .nav-soc-link:hover { color:var(--white); }
-
 /* Centro: logo */
-.nav-logo {
-  display:flex;justify-content:center;align-items:center;
-}
+.nav-logo { display:flex;justify-content:center;align-items:center; }
 .nav-logo a { display:flex;align-items:center; }
 .nav-logo img { height:26px;width:auto;display:block; }
-
-/* Direita: wrapper geral */
-.nav-right {
-  display:flex;justify-content:flex-end;align-items:center;
-}
-
-/* Menu wrap — contém trigger + links inline */
+/* Direita */
+.nav-right { display:flex;justify-content:flex-end;align-items:center; }
+/* Menu wrap */
 .nav-menu-wrap {
-  display:flex;align-items:center;
-  position:relative;
-  cursor:default;
+  display:flex;align-items:center;cursor:default;
 }
-
 /* Trigger "Menu" */
 .nav-menu-trigger {
   background:none;border:none;cursor:pointer;
   font-family:var(--font);font-size:11px;font-weight:600;
-  letter-spacing:.18em;text-transform:uppercase;
-  color:var(--white);
-  display:flex;align-items:center;gap:5px;
-  padding:6px 0;
-  white-space:nowrap;
-  flex-shrink:0;
-  transition:opacity .2s;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--white);
+  display:flex;align-items:center;gap:5px;padding:6px 0;
+  white-space:nowrap;flex-shrink:0;transition:opacity .2s;
 }
 .nav-menu-trigger:hover { opacity:.6; }
-
-/* Seta rotaciona quando aberto */
 .nav-menu-arrow { transition:transform .22s;flex-shrink:0; }
 .nav-menu-wrap:hover .nav-menu-arrow,
 .nav-menu-wrap.open .nav-menu-arrow { transform:rotate(90deg); }
-
-/* Links que aparecem À DIREITA do "Menu" ao hover */
+/* Links inline — expandem à direita */
 .nav-inline-links {
   display:flex;align-items:center;gap:0;
-  overflow:hidden;
-  max-width:0;
-  opacity:0;
-  pointer-events:none;
-  transition:max-width .35s cubic-bezier(.4,0,.2,1), opacity .25s ease, gap .3s;
+  overflow:hidden;max-width:0;opacity:0;pointer-events:none;
+  transition:max-width .35s cubic-bezier(.4,0,.2,1),opacity .25s,gap .3s;
   white-space:nowrap;
 }
 .nav-menu-wrap:hover .nav-inline-links,
 .nav-menu-wrap.open .nav-inline-links {
-  max-width:600px;
-  opacity:1;
-  pointer-events:all;
-  gap:28px;
-  padding-left:28px;
+  max-width:640px;opacity:1;pointer-events:all;gap:28px;padding-left:24px;
 }
 .nav-inline-links a {
   font-family:var(--font);font-size:10px;font-weight:500;
-  letter-spacing:.13em;text-transform:uppercase;
-  text-decoration:none;
-  color:rgba(255,255,255,.65);
-  transition:color .15s;
-  white-space:nowrap;
-  flex-shrink:0;
+  letter-spacing:.13em;text-transform:uppercase;text-decoration:none;
+  color:rgba(255,255,255,.65);transition:color .15s;white-space:nowrap;flex-shrink:0;
 }
 .nav-inline-links a:hover { color:var(--white); }
-
-/* Mobile burger (hidden desktop) */
+/* Burger (hidden desktop) */
 .nav-burger { display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px; }
 .nav-burger span { display:block;width:22px;height:1px;background:var(--white); }
-
-/* Mobile close */
-.mob-close {
-  position:absolute;top:24px;right:24px;
-  background:none;border:none;color:var(--white);
-  font-size:22px;cursor:pointer;line-height:1;padding:4px;
-}
 
 /* MOBILE MENU */
 .mobile-menu {
@@ -136,6 +96,7 @@ body {
   font-size:26px;font-weight:200;font-style:italic;
   color:var(--white);text-decoration:none;
 }
+.mob-close { display:none; }
 
 /* PAGES */
 .page { display:none;min-height:100vh; }
@@ -513,8 +474,11 @@ footer { background:var(--black);color:var(--white);padding:48px 64px; }
 
 /* RESPONSIVE */
 @media(max-width:900px) {
-  #nav { padding:16px 20px; }
+  /* Mobile/tablet nav: logo left, burger right, no social icons */
+  #nav { padding:16px 20px; display:flex; justify-content:space-between; }
   .nav-social { display:none; }
+  .nav-logo { justify-content:flex-start; }
+  .nav-right { gap:0; }
   .nav-menu-wrap { display:none; }
   .nav-burger { display:flex; }
   .sec, footer { padding:80px 24px !important; }
