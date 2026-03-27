@@ -1,68 +1,19 @@
-const firebaseConfig = {
-  apiKey: "AIzaSyBxgFZeFlW8BwV3dqYjT-FM6MnB7-2I3lU",
-  authDomain: "jeito-design.firebaseapp.com",
-  projectId: "jeito-design",
-  storageBucket: "jeito-design.firebasestorage.app",
-  messagingSenderId: "73892657193",
-  appId: "1:73892657193:web:951d0b914dc5a5ea16c438"
-};
-
-// 2. INICIAR O FIREBASE
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();      
-const storage = firebase.storage();
-
-// --- FUNÇÃO PARA PUBLICAR PROJETOS ---
-async function publishProject() {
-    // Pegando os elementos da tela
-    const title = document.getElementById('proj-title').value;
-    const tipo = document.getElementById('proj-tipo').value;
-    const desc = document.getElementById('proj-desc').value;
-    const file = document.getElementById('proj-img-file').files[0];
-    const btn = document.getElementById('proj-publish-btn');
-
-    // Validação simples
-    if (!title || !file) {
-        alert("Por favor, preencha o título e selecione uma imagem!");
-        return;
-    }
-
-    try {
-        btn.disabled = true;
-        btn.innerText = "Enviando para o Google...";
-
-        // 1. Upload da Imagem para o Storage
-        const storageRef = storage.ref('projetos/' + Date.now() + "_" + file.name);
-        await storageRef.put(file);
-        const downloadURL = await storageRef.getDownloadURL();
-
-        // 2. Salvar dados no Firestore
-        await db.collection("projetos").add({
-            titulo: title,
-            tipo: tipo,
-            descricao: desc,
-            imagem: downloadURL,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        alert("Projeto cadastrado com sucesso! 🎉");
-        
-        // Limpar campos e fechar form
-        document.getElementById('proj-title').value = "";
-        document.getElementById('proj-img-file').value = "";
-        hideProjectForm(); // Chama a função que você já tem para esconder o form
-        
-        // Opcional: recarregar a lista (veremos isso a seguir)
-        location.reload(); 
-
-    } catch (error) {
-        console.error("Erro ao publicar:", error);
-        alert("Erro ao salvar projeto. Verifique o console.");
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Adicionar projeto";
-    }
-}
+// ── FIREBASE ──────────────────────────────────────────────────────────────────
+var db, storage;
+try {
+  if(!firebase.apps.length){
+    firebase.initializeApp({
+      apiKey:"AIzaSyBxgFZeFlW8BwV3dqYjT-FM6MnB7-2I3lU",
+      authDomain:"jeito-design.firebaseapp.com",
+      projectId:"jeito-design",
+      storageBucket:"jeito-design.firebasestorage.app",
+      messagingSenderId:"73892657193",
+      appId:"1:73892657193:web:951d0b914dc5a5ea16c438"
+    });
+  }
+  db = firebase.firestore();
+  storage = firebase.storage();
+} catch(e){ console.warn('Firebase init:', e); }
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const PAGES = ['home','jeito','servico','projetos','conteudos','contato','admin'];
@@ -127,18 +78,17 @@ window.addEventListener('scroll', function(){
 function toggleMob(){ document.getElementById('mob').classList.toggle('open'); }
 function closeMob(){ document.getElementById('mob').classList.remove('open'); }
 
-// ── NAV MENU (JS apenas para acessibilidade/click fora) ──────────────────────
 function openNavMenu(){
-  var w = document.getElementById('nav-menu-wrap');
+  var w=document.getElementById('nav-menu-wrap');
   if(w) w.classList.add('open');
 }
 function closeNavMenu(){
-  var w = document.getElementById('nav-menu-wrap');
+  var w=document.getElementById('nav-menu-wrap');
   if(w) w.classList.remove('open');
 }
-document.addEventListener('click', function(e){
-  var w = document.getElementById('nav-menu-wrap');
-  if(w && !w.contains(e.target)) closeNavMenu();
+document.addEventListener('click',function(e){
+  var w=document.getElementById('nav-menu-wrap');
+  if(w&&!w.contains(e.target)) closeNavMenu();
 });
 
 // ── SCROLL REVEAL ─────────────────────────────────────────────────────────────
@@ -167,8 +117,25 @@ function toggleFaq(el){
 }
 
 // ── BLOG ──────────────────────────────────────────────────────────────────────
-var blogPosts = store.get('jeito_posts') || [];
+var blogPosts = [];
 var adminLoggedIn = false;
+
+// ── LOAD POSTS FROM FIRESTORE ─────────────────────────────────────────────────
+function loadPosts(callback){
+  if(!db){ renderBlogGrid(); if(callback) callback(); return; }
+  db.collection('posts').orderBy('createdAt','desc').get()
+    .then(function(snap){
+      blogPosts = [];
+      snap.forEach(function(doc){
+        var d = doc.data();
+        blogPosts.push({id:doc.id, title:d.title||'', tag:d.tag||'Blog', body:d.body||'', img:d.img||'', date:d.date||''});
+      });
+      renderBlogGrid();
+      renderAdminList();
+      if(callback) callback();
+    })
+    .catch(function(e){ console.warn('loadPosts:',e); renderBlogGrid(); if(callback) callback(); });
+}
 
 function adminLogin(){
   var pw = document.getElementById('admin-pw').value;
@@ -176,7 +143,8 @@ function adminLogin(){
     adminLoggedIn = true;
     document.getElementById('admin-login-wrap').style.display = 'none';
     document.getElementById('admin-panel-wrap').style.display = 'block';
-    renderAdminList();
+    loadPosts();
+    loadProjects();
   } else {
     document.getElementById('admin-err').style.display = 'block';
   }
@@ -201,7 +169,6 @@ function hidePostForm(){
 }
 
 function editPost(id){
-  id=Number(id);
   var p=blogPosts.find(function(x){ return x.id===id; });
   if(!p) return;
   document.getElementById('post-title').value=p.title;
@@ -220,36 +187,36 @@ function editPost(id){
 }
 
 function deletePost(id){
-  id=Number(id);
-  blogPosts=blogPosts.filter(function(p){ return p.id!==id; });
-  store.set('jeito_posts',blogPosts);
-  renderBlogGrid();
-  renderAdminList();
+  if(!db){ return; }
+  db.collection('posts').doc(id).delete()
+    .then(function(){ loadPosts(); })
+    .catch(function(e){ alert('Erro: '+e.message); });
 }
 
-function publishPost(){
-  var title=document.getElementById('post-title').value.trim();
-  var tag=document.getElementById('post-tag').value.trim()||'Blog';
-  var body=document.getElementById('post-body').value.trim();
-  var img=document.getElementById('post-img').value.trim();
-  var editId=document.getElementById('edit-id').value;
+async function publishPost(){
+  var title = document.getElementById('post-title').value.trim();
+  var tag   = document.getElementById('post-tag').value.trim()||'Blog';
+  var body  = document.getElementById('post-body').value.trim();
+  var img   = document.getElementById('post-img').value.trim();
+  var editId= document.getElementById('edit-id').value;
+  var btn   = document.getElementById('publish-btn');
   if(!title||!body){ alert('Preencha título e texto.'); return; }
-  if(editId){
-    var id=Number(editId);
-    blogPosts=blogPosts.map(function(p){
-      if(p.id===id) return {id:p.id,title:title,tag:tag,body:body,img:img,date:p.date};
-      return p;
-    });
-  } else {
-    blogPosts.unshift({
-      id:Date.now(),title:title,tag:tag,body:body,img:img,
-      date:new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})
-    });
-  }
-  store.set('jeito_posts',blogPosts);
-  hidePostForm();
-  renderBlogGrid();
-  renderAdminList();
+  if(!db){ alert('Firebase não conectado.'); return; }
+  btn.disabled=true; btn.textContent='Salvando...';
+  try {
+    var dateStr = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+    var data = {title:title,tag:tag,body:body,img:img,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+    if(editId){
+      var orig=blogPosts.find(function(p){ return p.id===editId; });
+      data.date = orig ? orig.date : dateStr;
+      await db.collection('posts').doc(editId).update(data);
+    } else {
+      data.date = dateStr;
+      await db.collection('posts').add(data);
+    }
+    hidePostForm(); loadPosts();
+  } catch(e){ alert('Erro: '+e.message); }
+  finally { btn.disabled=false; btn.textContent=editId?'Salvar alterações':'Publicar post'; }
 }
 
 function renderAdminList(){
@@ -307,7 +274,6 @@ function renderBlogGrid(){
 }
 
 function openPost(id){
-  id=Number(id);
   var p=blogPosts.find(function(x){ return x.id===id; });
   if(!p) return;
   var paras=p.body.split('\n\n').map(function(t){ return '<p>'+t.replace(/\n/g,'<br/>')+'</p>'; }).join('');
@@ -416,10 +382,40 @@ function switchAdminTab(tab){
   bProj.style.color       = isPost ? 'var(--black)' : 'var(--white)';
 }
 
-// ── PROJECTS ADMIN ────────────────────────────────────────────────────────────
-var siteProjects = store.get('jeito_projects') || [];
+// ── PROJECTS (Firestore) ─────────────────────────────────────────────────────
+var siteProjects = [];
+
+function loadProjects(callback){
+  if(!db){ renderProjectsGrid(); renderAdminProjectList(); if(callback) callback(); return; }
+  db.collection('projetos').orderBy('createdAt','desc').get()
+    .then(function(snap){
+      siteProjects=[];
+      snap.forEach(function(doc){
+        var d=doc.data();
+        siteProjects.push({id:doc.id, nome:d.titulo||d.nome||'', tipo:d.tipo||'', descricao:d.descricao||'', img:d.imagem||d.img||''});
+      });
+      renderProjectsGrid();
+      renderAdminProjectList();
+      if(callback) callback();
+    })
+    .catch(function(e){ console.warn('loadProjects:',e); if(callback) callback(); });
+}
 
 function renderProjectsGrid(){
+  // Also update home grid if present
+  var homeGrid = document.getElementById('proj-grid-home');
+  if(homeGrid){
+    homeGrid.innerHTML='';
+    if(!siteProjects.length){
+      homeGrid.innerHTML='<div class="proj-card"><div class="proj-ph"><p>Em breve</p></div><div class="proj-ov"><p>Ver projeto</p></div></div><div class="proj-card"><div class="proj-ph"><p>Em breve</p></div><div class="proj-ov"><p>Ver projeto</p></div></div><div class="proj-card"><div class="proj-ph"><p>Em breve</p></div><div class="proj-ov"><p>Ver projeto</p></div></div>';
+    } else {
+      siteProjects.slice(0,3).forEach(function(p){
+        var c=document.createElement('div'); c.className='proj-card';
+        c.innerHTML=(p.img?'<img src="'+p.img+'" alt="'+p.nome+'" loading="lazy" style="width:100%;height:100%;object-fit:cover;">':'<div class="proj-ph"><p>'+(p.nome||'Case')+'</p></div>')+'<div class="proj-ov"><p>Ver projeto</p></div>';
+        homeGrid.appendChild(c);
+      });
+    }
+  }
   var grid = document.getElementById('proj-grid-full');
   if(!grid) return;
   grid.innerHTML = '';
@@ -517,7 +513,6 @@ function hideProjectForm(){
 }
 
 function editProject(id){
-  id = Number(id);
   var p = siteProjects.find(function(x){ return x.id===id; });
   if(!p) return;
   document.getElementById('proj-title').value  = p.nome;
@@ -536,33 +531,37 @@ function editProject(id){
 }
 
 function deleteProject(id){
-  id = Number(id);
-  siteProjects = siteProjects.filter(function(p){ return p.id!==id; });
-  store.set('jeito_projects', siteProjects);
-  renderProjectsGrid();
-  renderAdminProjectList();
+  if(!db){ alert('Firebase não conectado.'); return; }
+  db.collection('projetos').doc(id).delete()
+    .then(function(){ loadProjects(); })
+    .catch(function(e){ alert('Erro: '+e.message); });
 }
 
-function publishProject(){
-  var nome   = document.getElementById('proj-title').value.trim();
-  var tipo   = document.getElementById('proj-tipo').value.trim()||'Identidade Visual';
-  var desc   = document.getElementById('proj-desc').value.trim();
-  var img    = document.getElementById('proj-img').value.trim();
-  var editId = document.getElementById('proj-edit-id').value;
+async function publishProject(){
+  var nome  = document.getElementById('proj-title').value.trim();
+  var tipo  = document.getElementById('proj-tipo').value.trim()||'Identidade Visual';
+  var desc  = document.getElementById('proj-desc').value.trim();
+  var editId= document.getElementById('proj-edit-id').value;
+  var btn   = document.getElementById('proj-publish-btn');
+  var fileEl= document.getElementById('proj-img-file');
+  var file  = fileEl ? fileEl.files[0] : null;
   if(!nome){ alert('Preencha o nome do projeto.'); return; }
-  if(editId){
-    var id = Number(editId);
-    siteProjects = siteProjects.map(function(p){
-      if(p.id===id) return {id:p.id,nome:nome,tipo:tipo,descricao:desc,img:img};
-      return p;
-    });
-  } else {
-    siteProjects.unshift({id:Date.now(),nome:nome,tipo:tipo,descricao:desc,img:img});
-  }
-  store.set('jeito_projects', siteProjects);
-  hideProjectForm();
-  renderProjectsGrid();
-  renderAdminProjectList();
+  if(!editId && !file){ alert('Selecione uma imagem.'); return; }
+  if(!db){ alert('Firebase não conectado.'); return; }
+  btn.disabled=true; btn.textContent=file?'Enviando...':'Salvando...';
+  try {
+    var imgUrl = document.getElementById('proj-img').value||'';
+    if(file && storage){
+      var ref=storage.ref('projetos/'+Date.now()+'_'+file.name);
+      await ref.put(file);
+      imgUrl=await ref.getDownloadURL();
+    }
+    var data={titulo:nome,tipo:tipo,descricao:desc,imagem:imgUrl,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+    if(editId){ await db.collection('projetos').doc(editId).update(data); }
+    else { await db.collection('projetos').add(data); }
+    hideProjectForm(); loadProjects();
+  } catch(e){ alert('Erro: '+e.message); console.error(e); }
+  finally { btn.disabled=false; btn.textContent=editId?'Salvar projeto':'Adicionar projeto'; }
 }
 
 // File reader for project image
@@ -616,19 +615,6 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Função especial para abrir o admin pelo console
-function abrirAdmin() {
-    // Esconde todas as páginas normais
-    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-    // Mostra o contentor do admin
-    const adminDiv = document.getElementById('admin-container') || document.querySelector('.admin-wrap');
-    if(adminDiv) {
-        adminDiv.style.display = 'block';
-        nav('admin'); // Tenta disparar a sua lógica de navegação
-    } else {
-        console.error("Não encontrei a div de admin no HTML");
-    }
-}
 
 // ── ROTEAMENTO /admin ─────────────────────────────────────────────────────────
 (function() {
@@ -649,4 +635,5 @@ function abrirAdmin() {
 })();
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-renderBlogGrid();
+loadPosts();
+loadProjects();
