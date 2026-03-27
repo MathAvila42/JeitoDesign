@@ -1,4 +1,3 @@
-// ── FIREBASE ──────────────────────────────────────────────────────────────────
 var db, storage;
 try {
   if(!firebase.apps.length){
@@ -11,9 +10,8 @@ try {
       appId:"1:73892657193:web:951d0b914dc5a5ea16c438"
     });
   }
-  db = firebase.firestore();
-  storage = firebase.storage();
-} catch(e){ console.warn('Firebase init:', e); }
+  db=firebase.firestore(); storage=firebase.storage();
+} catch(e){ console.warn('Firebase:',e); }
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const PAGES = ['home','jeito','servico','projetos','conteudos','contato','admin'];
@@ -77,19 +75,9 @@ window.addEventListener('scroll', function(){
 // ── MOBILE MENU ───────────────────────────────────────────────────────────────
 function toggleMob(){ document.getElementById('mob').classList.toggle('open'); }
 function closeMob(){ document.getElementById('mob').classList.remove('open'); }
-
-function openNavMenu(){
-  var w=document.getElementById('nav-menu-wrap');
-  if(w) w.classList.add('open');
-}
-function closeNavMenu(){
-  var w=document.getElementById('nav-menu-wrap');
-  if(w) w.classList.remove('open');
-}
-document.addEventListener('click',function(e){
-  var w=document.getElementById('nav-menu-wrap');
-  if(w&&!w.contains(e.target)) closeNavMenu();
-});
+function openNavMenu(){ var w=document.getElementById('nav-menu-wrap'); if(w) w.classList.add('open'); }
+function closeNavMenu(){ var w=document.getElementById('nav-menu-wrap'); if(w) w.classList.remove('open'); }
+document.addEventListener('click',function(e){ var w=document.getElementById('nav-menu-wrap'); if(w&&!w.contains(e.target)) closeNavMenu(); });
 
 // ── SCROLL REVEAL ─────────────────────────────────────────────────────────────
 function initReveal(){
@@ -120,21 +108,17 @@ function toggleFaq(el){
 var blogPosts = [];
 var adminLoggedIn = false;
 
-// ── LOAD POSTS FROM FIRESTORE ─────────────────────────────────────────────────
-function loadPosts(callback){
-  if(!db){ renderBlogGrid(); if(callback) callback(); return; }
+function loadPosts(cb){
+  if(!db){ renderBlogGrid(); if(cb) cb(); return; }
   db.collection('posts').orderBy('createdAt','desc').get()
     .then(function(snap){
-      blogPosts = [];
+      blogPosts=[];
       snap.forEach(function(doc){
-        var d = doc.data();
-        blogPosts.push({id:doc.id, title:d.title||'', tag:d.tag||'Blog', body:d.body||'', img:d.img||'', date:d.date||''});
+        var d=doc.data();
+        blogPosts.push({id:doc.id,title:d.title||'',tag:d.tag||'Blog',body:d.body||'',img:d.img||'',date:d.date||''});
       });
-      renderBlogGrid();
-      renderAdminList();
-      if(callback) callback();
-    })
-    .catch(function(e){ console.warn('loadPosts:',e); renderBlogGrid(); if(callback) callback(); });
+      renderBlogGrid(); renderAdminList(); if(cb) cb();
+    }).catch(function(e){ console.warn('loadPosts:',e); renderBlogGrid(); if(cb) cb(); });
 }
 
 function adminLogin(){
@@ -187,35 +171,27 @@ function editPost(id){
 }
 
 function deletePost(id){
-  if(!db){ return; }
-  db.collection('posts').doc(id).delete()
-    .then(function(){ loadPosts(); })
-    .catch(function(e){ alert('Erro: '+e.message); });
+  if(!db) return;
+  db.collection('posts').doc(id).delete().then(function(){ loadPosts(); }).catch(function(e){ alert('Erro:'+e.message); });
 }
 
 async function publishPost(){
-  var title = document.getElementById('post-title').value.trim();
-  var tag   = document.getElementById('post-tag').value.trim()||'Blog';
-  var body  = document.getElementById('post-body').value.trim();
-  var img   = document.getElementById('post-img').value.trim();
-  var editId= document.getElementById('edit-id').value;
-  var btn   = document.getElementById('publish-btn');
+  var title=document.getElementById('post-title').value.trim();
+  var tag=document.getElementById('post-tag').value.trim()||'Blog';
+  var body=document.getElementById('post-body').value.trim();
+  var img=document.getElementById('post-img').value.trim();
+  var editId=document.getElementById('edit-id').value;
+  var btn=document.getElementById('publish-btn');
   if(!title||!body){ alert('Preencha título e texto.'); return; }
   if(!db){ alert('Firebase não conectado.'); return; }
   btn.disabled=true; btn.textContent='Salvando...';
   try {
-    var dateStr = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
-    var data = {title:title,tag:tag,body:body,img:img,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-    if(editId){
-      var orig=blogPosts.find(function(p){ return p.id===editId; });
-      data.date = orig ? orig.date : dateStr;
-      await db.collection('posts').doc(editId).update(data);
-    } else {
-      data.date = dateStr;
-      await db.collection('posts').add(data);
-    }
+    var ds=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+    var data={title:title,tag:tag,body:body,img:img,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+    if(editId){ var o=blogPosts.find(function(p){return p.id===editId;}); data.date=o?o.date:ds; await db.collection('posts').doc(editId).update(data); }
+    else { data.date=ds; await db.collection('posts').add(data); }
     hidePostForm(); loadPosts();
-  } catch(e){ alert('Erro: '+e.message); }
+  } catch(e){ alert('Erro:'+e.message); }
   finally { btn.disabled=false; btn.textContent=editId?'Salvar alterações':'Publicar post'; }
 }
 
@@ -385,37 +361,51 @@ function switchAdminTab(tab){
 // ── PROJECTS (Firestore) ─────────────────────────────────────────────────────
 var siteProjects = [];
 
-function loadProjects(callback){
-  if(!db){ renderProjectsGrid(); renderAdminProjectList(); if(callback) callback(); return; }
+function loadProjects(cb){
+  if(!db){ renderProjectsGrid(); renderCarousel(); if(cb) cb(); return; }
   db.collection('projetos').orderBy('createdAt','desc').get()
     .then(function(snap){
       siteProjects=[];
       snap.forEach(function(doc){
         var d=doc.data();
-        siteProjects.push({id:doc.id, nome:d.titulo||d.nome||'', tipo:d.tipo||'', descricao:d.descricao||'', img:d.imagem||d.img||''});
+        siteProjects.push({id:doc.id,nome:d.titulo||d.nome||'',tipo:d.tipo||'',descricao:d.descricao||'',img:d.imagem||d.img||''});
       });
-      renderProjectsGrid();
-      renderAdminProjectList();
-      if(callback) callback();
-    })
-    .catch(function(e){ console.warn('loadProjects:',e); if(callback) callback(); });
+      renderProjectsGrid(); renderCarousel(); renderAdminProjectList(); if(cb) cb();
+    }).catch(function(e){ console.warn('loadProjects:',e); renderCarousel(); if(cb) cb(); });
+}
+
+// ── CAROUSEL (home) ───────────────────────────────────────────────────────────
+function renderCarousel(){
+  var track = document.getElementById('carousel-track');
+  if(!track) return;
+  track.innerHTML='';
+  var items = siteProjects.length ? siteProjects : [];
+  if(!items.length){
+    // Placeholders when no projects
+    for(var i=0;i<6;i++){
+      var ph=document.createElement('div'); ph.className='carousel-item';
+      ph.innerHTML='<div class="carousel-item-ph"><p>Em breve</p></div>';
+      track.appendChild(ph);
+    }
+  } else {
+    // Duplicate items for infinite loop (original + clone)
+    var all = items.concat(items);
+    all.forEach(function(p){
+      var item=document.createElement('div'); item.className='carousel-item';
+      if(p.img){
+        item.innerHTML='<img src="'+p.img+'" alt="'+p.nome+'" loading="lazy">';
+      } else {
+        item.innerHTML='<div class="carousel-item-ph"><p>'+(p.nome||'Projeto')+'</p></div>';
+      }
+      track.appendChild(item);
+    });
+    // Set animation duration based on number of items (more items = slower feel)
+    var dur = Math.max(20, items.length * 8);
+    track.style.animationDuration = dur + 's';
+  }
 }
 
 function renderProjectsGrid(){
-  // Also update home grid if present
-  var homeGrid = document.getElementById('proj-grid-home');
-  if(homeGrid){
-    homeGrid.innerHTML='';
-    if(!siteProjects.length){
-      homeGrid.innerHTML='<div class="proj-card"><div class="proj-ph"><p>Em breve</p></div><div class="proj-ov"><p>Ver projeto</p></div></div><div class="proj-card"><div class="proj-ph"><p>Em breve</p></div><div class="proj-ov"><p>Ver projeto</p></div></div><div class="proj-card"><div class="proj-ph"><p>Em breve</p></div><div class="proj-ov"><p>Ver projeto</p></div></div>';
-    } else {
-      siteProjects.slice(0,3).forEach(function(p){
-        var c=document.createElement('div'); c.className='proj-card';
-        c.innerHTML=(p.img?'<img src="'+p.img+'" alt="'+p.nome+'" loading="lazy" style="width:100%;height:100%;object-fit:cover;">':'<div class="proj-ph"><p>'+(p.nome||'Case')+'</p></div>')+'<div class="proj-ov"><p>Ver projeto</p></div>';
-        homeGrid.appendChild(c);
-      });
-    }
-  }
   var grid = document.getElementById('proj-grid-full');
   if(!grid) return;
   grid.innerHTML = '';
@@ -531,36 +521,30 @@ function editProject(id){
 }
 
 function deleteProject(id){
-  if(!db){ alert('Firebase não conectado.'); return; }
-  db.collection('projetos').doc(id).delete()
-    .then(function(){ loadProjects(); })
-    .catch(function(e){ alert('Erro: '+e.message); });
+  if(!db) return;
+  db.collection('projetos').doc(id).delete().then(function(){ loadProjects(); }).catch(function(e){ alert('Erro:'+e.message); });
 }
 
 async function publishProject(){
-  var nome  = document.getElementById('proj-title').value.trim();
-  var tipo  = document.getElementById('proj-tipo').value.trim()||'Identidade Visual';
-  var desc  = document.getElementById('proj-desc').value.trim();
-  var editId= document.getElementById('proj-edit-id').value;
-  var btn   = document.getElementById('proj-publish-btn');
-  var fileEl= document.getElementById('proj-img-file');
-  var file  = fileEl ? fileEl.files[0] : null;
+  var nome=document.getElementById('proj-title').value.trim();
+  var tipo=document.getElementById('proj-tipo').value.trim()||'Identidade Visual';
+  var desc=document.getElementById('proj-desc').value.trim();
+  var editId=document.getElementById('proj-edit-id').value;
+  var btn=document.getElementById('proj-publish-btn');
+  var fileEl=document.getElementById('proj-img-file');
+  var file=fileEl?fileEl.files[0]:null;
   if(!nome){ alert('Preencha o nome do projeto.'); return; }
-  if(!editId && !file){ alert('Selecione uma imagem.'); return; }
+  if(!editId&&!file){ alert('Selecione uma imagem.'); return; }
   if(!db){ alert('Firebase não conectado.'); return; }
   btn.disabled=true; btn.textContent=file?'Enviando...':'Salvando...';
   try {
-    var imgUrl = document.getElementById('proj-img').value||'';
-    if(file && storage){
-      var ref=storage.ref('projetos/'+Date.now()+'_'+file.name);
-      await ref.put(file);
-      imgUrl=await ref.getDownloadURL();
-    }
+    var imgUrl=document.getElementById('proj-img').value||'';
+    if(file&&storage){ var ref=storage.ref('projetos/'+Date.now()+'_'+file.name); await ref.put(file); imgUrl=await ref.getDownloadURL(); }
     var data={titulo:nome,tipo:tipo,descricao:desc,imagem:imgUrl,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
     if(editId){ await db.collection('projetos').doc(editId).update(data); }
     else { await db.collection('projetos').add(data); }
     hideProjectForm(); loadProjects();
-  } catch(e){ alert('Erro: '+e.message); console.error(e); }
+  } catch(e){ alert('Erro:'+e.message); console.error(e); }
   finally { btn.disabled=false; btn.textContent=editId?'Salvar projeto':'Adicionar projeto'; }
 }
 
