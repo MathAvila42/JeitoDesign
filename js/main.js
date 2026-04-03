@@ -1,19 +1,15 @@
-// ── FIREBASE ──────────────────────────────────────────────────────────────────
-var db, storage;
+// ── SUPABASE ──────────────────────────────────────────────────────────────────
+// Tabelas necessárias no Supabase (SQL):
+//   create table posts (id uuid primary key default gen_random_uuid(), title text, tag text default 'Blog', body text, img text, date text, created_at timestamptz default now());
+//   create table projetos (id uuid primary key default gen_random_uuid(), titulo text, tipo text, descricao text, imagem text, created_at timestamptz default now());
+//   Storage: bucket "media" (público) com pastas posts/ e projetos/
+var sb;
 try {
-  if (!firebase.apps.length) {
-    firebase.initializeApp({
-      apiKey: "AIzaSyBxgFZeFlW8BwV3dqYjT-FM6MnB7-2I3lU",
-      authDomain: "jeito-design.firebaseapp.com",
-      projectId: "jeito-design",
-      storageBucket: "jeito-design.firebasestorage.app",
-      messagingSenderId: "73892657193",
-      appId: "1:73892657193:web:951d0b914dc5a5ea16c438"
-    });
-  }
-  db      = firebase.firestore();
-  storage = firebase.storage();
-} catch(e) { console.warn('Firebase:', e); }
+  sb = window.supabase.createClient(
+    'https://kbwspfpvrisxowzpnuip.supabase.co',
+    'sb_publishable_XXbBXU_mYm7Ltvp082Ddrw_I7SlWl1h'
+  );
+} catch(e) { console.warn('Supabase:', e); }
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const PAGES = ['home','quemsomos','servico','projetos','conteudos','contato','admin'];
@@ -108,19 +104,17 @@ var blogPosts = [];
 var adminLoggedIn = false;
 
 function loadPosts(callback) {
-  if (!db) { if(callback) callback(); return; }
-  db.collection('posts').orderBy('createdAt', 'desc').get()
-    .then(function(snapshot) {
-      blogPosts = [];
-      snapshot.forEach(function(doc) {
-        var d = doc.data();
-        blogPosts.push({ id:doc.id, title:d.title||'', tag:d.tag||'Blog', body:d.body||'', img:d.img||'', date:d.date||'' });
+  if (!sb) { if(callback) callback(); return; }
+  sb.from('posts').select('*').order('created_at', { ascending: false })
+    .then(function(res) {
+      if(res.error){ console.warn('loadPosts:', res.error); if(callback) callback(); return; }
+      blogPosts = (res.data||[]).map(function(d){
+        return { id:d.id, title:d.title||'', tag:d.tag||'Blog', body:d.body||'', img:d.img||'', date:d.date||'' };
       });
       renderBlogGrid();
       renderAdminList();
       if(callback) callback();
-    })
-    .catch(function(e){ console.warn('loadPosts:', e); if(callback) callback(); });
+    });
 }
 
 function adminLogin(){
@@ -173,10 +167,9 @@ function editPost(id){
 }
 
 function deletePost(id){
-  if(!db){ alert('Firebase não conectado.'); return; }
-  db.collection('posts').doc(id).delete()
-    .then(function(){ loadPosts(); })
-    .catch(function(e){ alert('Erro: ' + e.message); });
+  if(!sb){ alert('Supabase não conectado.'); return; }
+  sb.from('posts').delete().eq('id', id)
+    .then(function(res){ if(res.error){ alert('Erro: '+res.error.message); return; } loadPosts(); });
 }
 
 async function publishPost(){
@@ -190,27 +183,30 @@ async function publishPost(){
   var file   = fileEl ? fileEl.files[0] : null;
 
   if(!title || !body){ alert('Preencha título e texto.'); return; }
-  if(!db){ alert('Firebase não conectado.'); return; }
+  if(!sb){ alert('Supabase não conectado.'); return; }
 
   btn.disabled = true;
   btn.textContent = 'Salvando...';
 
   try {
-    if(file && storage){
+    if(file){
       btn.textContent = 'Enviando imagem...';
-      var ref = storage.ref('posts/' + Date.now() + '_' + file.name);
-      await ref.put(file);
-      img = await ref.getDownloadURL();
+      var path = 'posts/' + Date.now() + '_' + file.name;
+      var { error: upErr } = await sb.storage.from('media').upload(path, file);
+      if(upErr) throw upErr;
+      img = sb.storage.from('media').getPublicUrl(path).data.publicUrl;
     }
     var dateStr = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
-    var data = { title:title, tag:tag, body:body, img:img, createdAt:firebase.firestore.FieldValue.serverTimestamp() };
+    var data = { title:title, tag:tag, body:body, img:img };
     if(editId){
       var orig = blogPosts.find(function(p){ return p.id===editId; });
       data.date = orig ? orig.date : dateStr;
-      await db.collection('posts').doc(editId).update(data);
+      var { error } = await sb.from('posts').update(data).eq('id', editId);
+      if(error) throw error;
     } else {
       data.date = dateStr;
-      await db.collection('posts').add(data);
+      var { error } = await sb.from('posts').insert(data);
+      if(error) throw error;
     }
     hidePostForm();
     loadPosts();
@@ -422,19 +418,17 @@ function switchAdminTab(tab){
 var siteProjects = [];
 
 function loadProjects(callback) {
-  if (!db) { if(callback) callback(); return; }
-  db.collection('projetos').orderBy('createdAt', 'desc').get()
-    .then(function(snapshot) {
-      siteProjects = [];
-      snapshot.forEach(function(doc) {
-        var d = doc.data();
-        siteProjects.push({ id:doc.id, nome:d.titulo||d.nome||'', tipo:d.tipo||'', descricao:d.descricao||'', img:d.imagem||d.img||'' });
+  if (!sb) { if(callback) callback(); return; }
+  sb.from('projetos').select('*').order('created_at', { ascending: false })
+    .then(function(res) {
+      if(res.error){ console.warn('loadProjects:', res.error); if(callback) callback(); return; }
+      siteProjects = (res.data||[]).map(function(d){
+        return { id:d.id, nome:d.titulo||d.nome||'', tipo:d.tipo||'', descricao:d.descricao||'', img:d.imagem||d.img||'' };
       });
       renderProjectsGrid();
       renderAdminProjectList();
       if(callback) callback();
-    })
-    .catch(function(e){ console.warn('loadProjects:', e); if(callback) callback(); });
+    });
 }
 
 function renderProjectsGrid(){
@@ -553,10 +547,9 @@ function editProject(id){
 }
 
 function deleteProject(id){
-  if(!db){ alert('Firebase não conectado.'); return; }
-  db.collection('projetos').doc(id).delete()
-    .then(function(){ loadProjects(); })
-    .catch(function(e){ alert('Erro: ' + e.message); });
+  if(!sb){ alert('Supabase não conectado.'); return; }
+  sb.from('projetos').delete().eq('id', id)
+    .then(function(res){ if(res.error){ alert('Erro: '+res.error.message); return; } loadProjects(); });
 }
 
 async function publishProject(){
@@ -570,23 +563,26 @@ async function publishProject(){
 
   if(!nome){ alert('Preencha o nome do projeto.'); return; }
   if(!editId && !file){ alert('Selecione uma imagem para o projeto.'); return; }
-  if(!db){ alert('Firebase não conectado.'); return; }
+  if(!sb){ alert('Supabase não conectado.'); return; }
 
   btn.disabled = true;
   btn.textContent = file ? 'Enviando imagem...' : 'Salvando...';
 
   try {
     var imgUrl = document.getElementById('proj-img').value || '';
-    if(file && storage){
-      var ref = storage.ref('projetos/' + Date.now() + '_' + file.name);
-      await ref.put(file);
-      imgUrl = await ref.getDownloadURL();
+    if(file){
+      var path = 'projetos/' + Date.now() + '_' + file.name;
+      var { error: upErr } = await sb.storage.from('media').upload(path, file);
+      if(upErr) throw upErr;
+      imgUrl = sb.storage.from('media').getPublicUrl(path).data.publicUrl;
     }
-    var data = { titulo:nome, tipo:tipo, descricao:desc, imagem:imgUrl, createdAt:firebase.firestore.FieldValue.serverTimestamp() };
+    var data = { titulo:nome, tipo:tipo, descricao:desc, imagem:imgUrl };
     if(editId){
-      await db.collection('projetos').doc(editId).update(data);
+      var { error } = await sb.from('projetos').update(data).eq('id', editId);
+      if(error) throw error;
     } else {
-      await db.collection('projetos').add(data);
+      var { error } = await sb.from('projetos').insert(data);
+      if(error) throw error;
     }
     hideProjectForm();
     loadProjects();
