@@ -71,8 +71,19 @@ window.addEventListener('scroll', function(){
 });
 
 // ── MOBILE MENU ───────────────────────────────────────────────────────────────
+var _mobTimer = null;
 function toggleMob(){ document.getElementById('mob').classList.toggle('open'); }
-function closeMob(){ document.getElementById('mob').classList.remove('open'); }
+function closeMob(){ clearTimeout(_mobTimer); document.getElementById('mob').classList.remove('open'); }
+document.addEventListener('DOMContentLoaded', function(){
+  var mob = document.getElementById('mob');
+  if(!mob) return;
+  mob.addEventListener('mouseleave', function(){
+    _mobTimer = setTimeout(closeMob, 1500);
+  });
+  mob.addEventListener('mouseenter', function(){
+    clearTimeout(_mobTimer);
+  });
+});
 
 // ── SCROLL REVEAL ─────────────────────────────────────────────────────────────
 function initReveal(){
