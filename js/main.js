@@ -1,17 +1,10 @@
-var db, storage;
+var sb;
 try {
-  if(!firebase.apps.length){
-    firebase.initializeApp({
-      apiKey:"AIzaSyBxgFZeFlW8BwV3dqYjT-FM6MnB7-2I3lU",
-      authDomain:"jeito-design.firebaseapp.com",
-      projectId:"jeito-design",
-      storageBucket:"jeito-design.firebasestorage.app",
-      messagingSenderId:"73892657193",
-      appId:"1:73892657193:web:951d0b914dc5a5ea16c438"
-    });
-  }
-  db=firebase.firestore(); storage=firebase.storage();
-} catch(e){ console.warn('Firebase:',e); }
+  sb = window.supabase.createClient(
+    'https://kbwspfpvrisxowzpnuip.supabase.co',
+    'sb_publishable_XXbBXU_mYm7Ltvp082Ddrw_I7SlWl1h'
+  );
+} catch(e){ console.warn('Supabase:',e); }
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const PAGES = ['home','jeito','servico','projetos','conteudos','contato','admin'];
@@ -109,13 +102,12 @@ var blogPosts = [];
 var adminLoggedIn = false;
 
 function loadPosts(cb){
-  if(!db){ renderBlogGrid(); if(cb) cb(); return; }
-  db.collection('posts').orderBy('createdAt','desc').get()
-    .then(function(snap){
-      blogPosts=[];
-      snap.forEach(function(doc){
-        var d=doc.data();
-        blogPosts.push({id:doc.id,title:d.title||'',tag:d.tag||'Blog',body:d.body||'',img:d.img||'',date:d.date||''});
+  if(!sb){ renderBlogGrid(); if(cb) cb(); return; }
+  sb.from('posts').select('*').order('created_at',{ascending:false})
+    .then(function(res){
+      if(res.error){ console.warn('loadPosts:',res.error); renderBlogGrid(); if(cb) cb(); return; }
+      blogPosts=(res.data||[]).map(function(d){
+        return {id:d.id,title:d.title||'',tag:d.tag||'Blog',body:d.body||'',img:d.img||'',date:d.date||''};
       });
       renderBlogGrid(); renderAdminList(); if(cb) cb();
     }).catch(function(e){ console.warn('loadPosts:',e); renderBlogGrid(); if(cb) cb(); });
@@ -171,8 +163,8 @@ function editPost(id){
 }
 
 function deletePost(id){
-  if(!db) return;
-  db.collection('posts').doc(id).delete().then(function(){ loadPosts(); }).catch(function(e){ alert('Erro:'+e.message); });
+  if(!sb) return;
+  sb.from('posts').delete().eq('id',id).then(function(res){ if(res.error){ alert('Erro:'+res.error.message); return; } loadPosts(); });
 }
 
 async function publishPost(){
@@ -183,13 +175,13 @@ async function publishPost(){
   var editId=document.getElementById('edit-id').value;
   var btn=document.getElementById('publish-btn');
   if(!title||!body){ alert('Preencha título e texto.'); return; }
-  if(!db){ alert('Firebase não conectado.'); return; }
+  if(!sb){ alert('Supabase não conectado.'); return; }
   btn.disabled=true; btn.textContent='Salvando...';
   try {
     var ds=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
-    var data={title:title,tag:tag,body:body,img:img,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-    if(editId){ var o=blogPosts.find(function(p){return p.id===editId;}); data.date=o?o.date:ds; await db.collection('posts').doc(editId).update(data); }
-    else { data.date=ds; await db.collection('posts').add(data); }
+    var data={title:title,tag:tag,body:body,img:img};
+    if(editId){ var o=blogPosts.find(function(p){return p.id===editId;}); data.date=o?o.date:ds; var {error}=await sb.from('posts').update(data).eq('id',editId); if(error) throw error; }
+    else { data.date=ds; var {error}=await sb.from('posts').insert(data); if(error) throw error; }
     hidePostForm(); loadPosts();
   } catch(e){ alert('Erro:'+e.message); }
   finally { btn.disabled=false; btn.textContent=editId?'Salvar alterações':'Publicar post'; }
@@ -358,17 +350,16 @@ function switchAdminTab(tab){
   bProj.style.color       = isPost ? 'var(--black)' : 'var(--white)';
 }
 
-// ── PROJECTS (Firestore) ─────────────────────────────────────────────────────
+// ── PROJECTS (Supabase) ─────────────────────────────────────────────────────
 var siteProjects = [];
 
 function loadProjects(cb){
-  if(!db){ renderProjectsGrid(); renderCarousel(); if(cb) cb(); return; }
-  db.collection('projetos').orderBy('createdAt','desc').get()
-    .then(function(snap){
-      siteProjects=[];
-      snap.forEach(function(doc){
-        var d=doc.data();
-        siteProjects.push({id:doc.id,nome:d.titulo||d.nome||'',tipo:d.tipo||'',descricao:d.descricao||'',img:d.imagem||d.img||''});
+  if(!sb){ renderProjectsGrid(); renderCarousel(); if(cb) cb(); return; }
+  sb.from('projetos').select('*').order('created_at',{ascending:false})
+    .then(function(res){
+      if(res.error){ console.warn('loadProjects:',res.error); renderCarousel(); if(cb) cb(); return; }
+      siteProjects=(res.data||[]).map(function(d){
+        return {id:d.id,nome:d.titulo||d.nome||'',tipo:d.tipo||'',descricao:d.descricao||'',img:d.imagem||d.img||''};
       });
       renderProjectsGrid(); renderCarousel(); renderAdminProjectList(); if(cb) cb();
     }).catch(function(e){ console.warn('loadProjects:',e); renderCarousel(); if(cb) cb(); });
@@ -521,8 +512,8 @@ function editProject(id){
 }
 
 function deleteProject(id){
-  if(!db) return;
-  db.collection('projetos').doc(id).delete().then(function(){ loadProjects(); }).catch(function(e){ alert('Erro:'+e.message); });
+  if(!sb) return;
+  sb.from('projetos').delete().eq('id',id).then(function(res){ if(res.error){ alert('Erro:'+res.error.message); return; } loadProjects(); });
 }
 
 async function publishProject(){
@@ -535,14 +526,14 @@ async function publishProject(){
   var file=fileEl?fileEl.files[0]:null;
   if(!nome){ alert('Preencha o nome do projeto.'); return; }
   if(!editId&&!file){ alert('Selecione uma imagem.'); return; }
-  if(!db){ alert('Firebase não conectado.'); return; }
+  if(!sb){ alert('Supabase não conectado.'); return; }
   btn.disabled=true; btn.textContent=file?'Enviando...':'Salvando...';
   try {
     var imgUrl=document.getElementById('proj-img').value||'';
-    if(file&&storage){ var ref=storage.ref('projetos/'+Date.now()+'_'+file.name); await ref.put(file); imgUrl=await ref.getDownloadURL(); }
-    var data={titulo:nome,tipo:tipo,descricao:desc,imagem:imgUrl,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-    if(editId){ await db.collection('projetos').doc(editId).update(data); }
-    else { await db.collection('projetos').add(data); }
+    if(file){ var path='projetos/'+Date.now()+'_'+file.name; var {error:upErr}=await sb.storage.from('media').upload(path,file); if(upErr) throw upErr; imgUrl=sb.storage.from('media').getPublicUrl(path).data.publicUrl; }
+    var data={titulo:nome,tipo:tipo,descricao:desc,imagem:imgUrl};
+    if(editId){ var {error}=await sb.from('projetos').update(data).eq('id',editId); if(error) throw error; }
+    else { var {error}=await sb.from('projetos').insert(data); if(error) throw error; }
     hideProjectForm(); loadProjects();
   } catch(e){ alert('Erro:'+e.message); console.error(e); }
   finally { btn.disabled=false; btn.textContent=editId?'Salvar projeto':'Adicionar projeto'; }
