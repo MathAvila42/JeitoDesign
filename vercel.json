@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/migrar",    "destination": "/migrar.html" },
     { "source": "/home",      "destination": "/index.html" },
     { "source": "/jeito",     "destination": "/index.html" },
     { "source": "/servico",   "destination": "/index.html" },
