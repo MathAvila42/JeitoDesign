@@ -4,7 +4,8 @@ try {
     'https://kbwspfpvrisxowzpnuip.supabase.co',
     'sb_publishable_XXbBXU_mYm7Ltvp082Ddrw_I7SlWl1h'
   );
-} catch(e){ console.warn('Supabase:',e); }
+  console.log('[Supabase] cliente inicializado:', !!sb);
+} catch(e){ console.error('[Supabase] erro de init:', e); }
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const PAGES = ['home','jeito','servico','projetos','conteudos','contato','admin'];
@@ -102,15 +103,16 @@ var blogPosts = [];
 var adminLoggedIn = false;
 
 function loadPosts(cb){
-  if(!sb){ renderBlogGrid(); if(cb) cb(); return; }
+  if(!sb){ console.warn('[Supabase] sb é null em loadPosts'); renderBlogGrid(); if(cb) cb(); return; }
   sb.from('posts').select('*').order('created_at',{ascending:false})
     .then(function(res){
-      if(res.error){ console.warn('loadPosts:',res.error); renderBlogGrid(); if(cb) cb(); return; }
+      console.log('[Supabase] loadPosts res:', JSON.stringify(res));
+      if(res.error){ console.error('[Supabase] loadPosts erro:',res.error); renderBlogGrid(); if(cb) cb(); return; }
       blogPosts=(res.data||[]).map(function(d){
         return {id:d.id,title:d.title||'',tag:d.tag||'Blog',body:d.body||'',img:d.img||'',date:d.date||''};
       });
       renderBlogGrid(); renderAdminList(); if(cb) cb();
-    }).catch(function(e){ console.warn('loadPosts:',e); renderBlogGrid(); if(cb) cb(); });
+    }).catch(function(e){ console.error('[Supabase] loadPosts catch:',e); renderBlogGrid(); if(cb) cb(); });
 }
 
 function adminLogin(){
@@ -354,10 +356,11 @@ function switchAdminTab(tab){
 var siteProjects = [];
 
 function loadProjects(cb){
-  if(!sb){ renderProjectsGrid(); renderCarousel(); if(cb) cb(); return; }
+  if(!sb){ console.warn('[Supabase] sb é null em loadProjects'); renderProjectsGrid(); renderCarousel(); if(cb) cb(); return; }
   sb.from('projetos').select('*').order('created_at',{ascending:false})
     .then(function(res){
-      if(res.error){ console.warn('loadProjects:',res.error); renderCarousel(); if(cb) cb(); return; }
+      console.log('[Supabase] loadProjects res:', JSON.stringify(res));
+      if(res.error){ console.error('[Supabase] loadProjects erro:',res.error); renderCarousel(); if(cb) cb(); return; }
       siteProjects=(res.data||[]).map(function(d){
         return {id:d.id,nome:d.titulo||d.nome||'',tipo:d.tipo||'',descricao:d.descricao||'',img:d.imagem||d.img||''};
       });
