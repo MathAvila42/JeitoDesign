@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<title>Migração Firebase → Supabase</title>
+<style>
+  body { font-family: monospace; background: #0a0a0a; color: #e0e0e0; padding: 40px; max-width: 800px; margin: 0 auto; }
+  h1 { color: #fff; font-size: 18px; margin-bottom: 8px; }
+  p { color: #888; font-size: 13px; margin-bottom: 32px; }
+  button { background: #fff; color: #000; border: none; padding: 14px 32px; font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+  button:disabled { background: #444; color: #888; cursor: not-allowed; }
+  #log { margin-top: 32px; background: #111; border: 1px solid #222; padding: 24px; min-height: 200px; font-size: 13px; line-height: 1.8; white-space: pre-wrap; }
+  .ok  { color: #4caf50; }
+  .err { color: #f44336; }
+  .info{ color: #90caf9; }
+</style>
+</head>
+<body>
+<h1>Migração Firebase → Supabase</h1>
+<p>Clique em Migrar para copiar todos os dados do Firestore (posts e projetos) para o Supabase.</p>
+<button id="btn" onclick="run()">Migrar agora</button>
+<div id="log"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://kbwspfpvrisxowzpnuip.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_XXbBXU_mYm7Ltvp082Ddrw_I7SlWl1h';
+
+firebase.initializeApp({
+  apiKey: "AIzaSyBxgFZeFlW8BwV3dqYjT-FM6MnB7-2I3lU",
+  authDomain: "jeito-design.firebaseapp.com",
+  projectId: "jeito-design",
+  storageBucket: "jeito-design.firebasestorage.app",
+  messagingSenderId: "73892657193",
+  appId: "1:73892657193:web:951d0b914dc5a5ea16c438"
+});
+const db = firebase.firestore();
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const logEl = document.getElementById('log');
+function log(msg, cls) {
+  const span = document.createElement('span');
+  span.className = cls || '';
+  span.textContent = msg + '\n';
+  logEl.appendChild(span);
+}
+
+async function migrateCollection(fbCol, sbTable, mapFn) {
+  log(`\n⬇  Lendo "${fbCol}" do Firebase...`, 'info');
+  const snap = await db.collection(fbCol).orderBy('createdAt', 'desc').get();
+  const docs = [];
+  snap.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
+  log(`   ${docs.length} documento(s) encontrado(s)`);
+  if (!docs.length) return;
+
+  log(`⬆  Inserindo em Supabase "${sbTable}"...`, 'info');
+  const rows = docs.map(mapFn);
+  const { error } = await sb.from(sbTable).upsert(rows, { onConflict: 'id' });
+  if (error) { log(`   ERRO: ${error.message}`, 'err'); throw error; }
+  log(`   ✓ ${rows.length} registro(s) migrado(s)`, 'ok');
+}
+
+async function run() {
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  logEl.innerHTML = '';
+  log('=== Iniciando migração ===', 'info');
+  try {
+    await migrateCollection('posts', 'posts', d => ({
+      id:         d.id,
+      title:      d.title   || '',
+      tag:        d.tag     || 'Blog',
+      body:       d.body    || '',
+      img:        d.img     || '',
+      date:       d.date    || '',
+      created_at: d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+    }));
+
+    await migrateCollection('projetos', 'projetos', d => ({
+      id:         d.id,
+      titulo:     d.titulo  || d.nome || '',
+      tipo:       d.tipo    || 'Identidade Visual',
+      descricao:  d.descricao || '',
+      imagem:     d.imagem  || d.img  || '',
+      created_at: d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+    }));
+
+    log('\n✅ Migração concluída com sucesso!', 'ok');
+    log('Pode fechar esta página e excluir o arquivo migrar.html.', 'ok');
+  } catch(e) {
+    log(`\n❌ Falhou: ${e.message}`, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
