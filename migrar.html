@@ -57,7 +57,7 @@ async function migrateCollection(fbCol, sbTable, mapFn) {
 
   log(`⬆  Inserindo em Supabase "${sbTable}"...`, 'info');
   const rows = docs.map(mapFn);
-  const { error } = await sb.from(sbTable).upsert(rows, { onConflict: 'id' });
+  const { error } = await sb.from(sbTable).insert(rows);
   if (error) { log(`   ERRO: ${error.message}`, 'err'); throw error; }
   log(`   ✓ ${rows.length} registro(s) migrado(s)`, 'ok');
 }
@@ -69,7 +69,6 @@ async function run() {
   log('=== Iniciando migração ===', 'info');
   try {
     await migrateCollection('posts', 'posts', d => ({
-      id:         d.id,
       title:      d.title   || '',
       tag:        d.tag     || 'Blog',
       body:       d.body    || '',
@@ -79,7 +78,6 @@ async function run() {
     }));
 
     await migrateCollection('projetos', 'projetos', d => ({
-      id:         d.id,
       titulo:     d.titulo  || d.nome || '',
       tipo:       d.tipo    || 'Identidade Visual',
       descricao:  d.descricao || '',
