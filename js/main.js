@@ -1,3 +1,8 @@
+// ── SUPABASE ──────────────────────────────────────────────────────────────────
+// Tabelas necessárias no Supabase (SQL):
+//   create table posts (id uuid primary key default gen_random_uuid(), title text, tag text default 'Blog', body text, img text, date text, created_at timestamptz default now());
+//   create table projetos (id uuid primary key default gen_random_uuid(), titulo text, tipo text, descricao text, imagem text, created_at timestamptz default now());
+//   Storage: bucket "media" (público) com pastas posts/ e projetos/
 var sb;
 try {
   sb = window.supabase.createClient(
@@ -66,11 +71,19 @@ window.addEventListener('scroll', function(){
 });
 
 // ── MOBILE MENU ───────────────────────────────────────────────────────────────
+var _mobTimer = null;
 function toggleMob(){ document.getElementById('mob').classList.toggle('open'); }
-function closeMob(){ document.getElementById('mob').classList.remove('open'); }
-function openNavMenu(){ var w=document.getElementById('nav-menu-wrap'); if(w) w.classList.add('open'); }
-function closeNavMenu(){ var w=document.getElementById('nav-menu-wrap'); if(w) w.classList.remove('open'); }
-document.addEventListener('click',function(e){ var w=document.getElementById('nav-menu-wrap'); if(w&&!w.contains(e.target)) closeNavMenu(); });
+function closeMob(){ clearTimeout(_mobTimer); document.getElementById('mob').classList.remove('open'); }
+document.addEventListener('DOMContentLoaded', function(){
+  var mob = document.getElementById('mob');
+  if(!mob) return;
+  mob.addEventListener('mouseleave', function(){
+    _mobTimer = setTimeout(closeMob, 1500);
+  });
+  mob.addEventListener('mouseenter', function(){
+    clearTimeout(_mobTimer);
+  });
+});
 
 // ── SCROLL REVEAL ─────────────────────────────────────────────────────────────
 function initReveal(){
@@ -168,23 +181,49 @@ function deletePost(id){
 }
 
 async function publishPost(){
-  var title=document.getElementById('post-title').value.trim();
-  var tag=document.getElementById('post-tag').value.trim()||'Blog';
-  var body=document.getElementById('post-body').value.trim();
-  var img=document.getElementById('post-img').value.trim();
-  var editId=document.getElementById('edit-id').value;
-  var btn=document.getElementById('publish-btn');
-  if(!title||!body){ alert('Preencha título e texto.'); return; }
+  var title  = document.getElementById('post-title').value.trim();
+  var tag    = document.getElementById('post-tag').value.trim() || 'Blog';
+  var body   = document.getElementById('post-body').value.trim();
+  var img    = document.getElementById('post-img').value.trim();
+  var editId = document.getElementById('edit-id').value;
+  var btn    = document.getElementById('publish-btn');
+  var fileEl = document.getElementById('post-img-file');
+  var file   = fileEl ? fileEl.files[0] : null;
+
+  if(!title || !body){ alert('Preencha título e texto.'); return; }
   if(!sb){ alert('Supabase não conectado.'); return; }
-  btn.disabled=true; btn.textContent='Salvando...';
+
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
   try {
-    var ds=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
-    var data={title:title,tag:tag,body:body,img:img};
-    if(editId){ var o=blogPosts.find(function(p){return p.id===editId;}); data.date=o?o.date:ds; var {error}=await sb.from('posts').update(data).eq('id',editId); if(error) throw error; }
-    else { data.date=ds; var {error}=await sb.from('posts').insert(data); if(error) throw error; }
-    hidePostForm(); loadPosts();
-  } catch(e){ alert('Erro:'+e.message); }
-  finally { btn.disabled=false; btn.textContent=editId?'Salvar alterações':'Publicar post'; }
+    if(file){
+      btn.textContent = 'Enviando imagem...';
+      var path = 'posts/' + Date.now() + '_' + file.name;
+      var { error: upErr } = await sb.storage.from('media').upload(path, file);
+      if(upErr) throw upErr;
+      img = sb.storage.from('media').getPublicUrl(path).data.publicUrl;
+    }
+    var dateStr = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+    var data = { title:title, tag:tag, body:body, img:img };
+    if(editId){
+      var orig = blogPosts.find(function(p){ return p.id===editId; });
+      data.date = orig ? orig.date : dateStr;
+      var { error } = await sb.from('posts').update(data).eq('id', editId);
+      if(error) throw error;
+    } else {
+      data.date = dateStr;
+      var { error } = await sb.from('posts').insert(data);
+      if(error) throw error;
+    }
+    hidePostForm();
+    loadPosts();
+  } catch(e){
+    alert('Erro: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = editId ? 'Salvar alterações' : 'Publicar post';
+  }
 }
 
 function renderAdminList(){
@@ -354,46 +393,15 @@ function switchAdminTab(tab){
 var siteProjects = [];
 
 function loadProjects(cb){
-  if(!sb){ renderProjectsGrid(); renderCarousel(); if(cb) cb(); return; }
+  if(!sb){ renderProjectsGrid(); renderCarousel(); renderOfertaMosaic(); if(cb) cb(); return; }
   sb.from('projetos').select('*').order('created_at',{ascending:false})
     .then(function(res){
       if(res.error){ console.warn('loadProjects:',res.error); renderCarousel(); if(cb) cb(); return; }
       siteProjects=(res.data||[]).map(function(d){
         return {id:d.id,nome:d.titulo||d.nome||'',tipo:d.tipo||'',descricao:d.descricao||'',img:d.imagem||d.img||''};
       });
-      renderProjectsGrid(); renderCarousel(); renderAdminProjectList(); if(cb) cb();
+      renderProjectsGrid(); renderCarousel(); renderOfertaMosaic(); renderAdminProjectList(); if(cb) cb();
     }).catch(function(e){ console.warn('loadProjects:',e); renderCarousel(); if(cb) cb(); });
-}
-
-// ── CAROUSEL (home) ───────────────────────────────────────────────────────────
-function renderCarousel(){
-  var track = document.getElementById('carousel-track');
-  if(!track) return;
-  track.innerHTML='';
-  var items = siteProjects.length ? siteProjects : [];
-  if(!items.length){
-    // Placeholders when no projects
-    for(var i=0;i<6;i++){
-      var ph=document.createElement('div'); ph.className='carousel-item';
-      ph.innerHTML='<div class="carousel-item-ph"><p>Em breve</p></div>';
-      track.appendChild(ph);
-    }
-  } else {
-    // Duplicate items for infinite loop (original + clone)
-    var all = items.concat(items);
-    all.forEach(function(p){
-      var item=document.createElement('div'); item.className='carousel-item';
-      if(p.img){
-        item.innerHTML='<img src="'+p.img+'" alt="'+p.nome+'" loading="lazy">';
-      } else {
-        item.innerHTML='<div class="carousel-item-ph"><p>'+(p.nome||'Projeto')+'</p></div>';
-      }
-      track.appendChild(item);
-    });
-    // Set animation duration based on number of items (more items = slower feel)
-    var dur = Math.max(20, items.length * 8);
-    track.style.animationDuration = dur + 's';
-  }
 }
 
 function renderProjectsGrid(){
@@ -430,6 +438,47 @@ function renderProjectsGrid(){
       grid.appendChild(c);
     });
   });
+}
+
+// ── CAROUSEL (home) ───────────────────────────────────────────────────────────
+function renderCarousel(){
+  var track = document.getElementById('carousel-track');
+  if(!track) return;
+  track.innerHTML = '';
+  if(!siteProjects.length){
+    for(var i=0;i<6;i++){
+      var ph=document.createElement('div'); ph.className='carousel-item';
+      ph.innerHTML='<div class="carousel-item-ph"><p>Em breve</p></div>';
+      track.appendChild(ph);
+    }
+  } else {
+    var all = siteProjects.concat(siteProjects);
+    all.forEach(function(p){
+      var item=document.createElement('div'); item.className='carousel-item';
+      if(p.img){
+        item.innerHTML='<img src="'+p.img+'" alt="'+p.nome+'" loading="lazy">';
+      } else {
+        item.innerHTML='<div class="carousel-item-ph"><p>'+(p.nome||'Projeto')+'</p></div>';
+      }
+      track.appendChild(item);
+    });
+    var dur=Math.max(20,siteProjects.length*8);
+    track.style.animationDuration=dur+'s';
+  }
+}
+
+// ── OFERTA MOSAIC ─────────────────────────────────────────────────────────────
+function renderOfertaMosaic(){
+  var mosaic=document.getElementById('oferta-mosaic');
+  if(!mosaic) return;
+  var imgs=siteProjects.filter(function(p){ return p.img; });
+  if(!imgs.length){ mosaic.innerHTML=''; return; }
+  var six=[];
+  while(six.length<6) six=six.concat(imgs);
+  six=six.slice(0,6);
+  mosaic.innerHTML=six.map(function(p){
+    return '<div class="oferta-mosaic-item"><img src="'+p.img+'" alt="'+p.nome+'" loading="lazy"></div>';
+  }).join('');
 }
 
 function renderAdminProjectList(){
