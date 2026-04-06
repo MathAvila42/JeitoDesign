@@ -437,6 +437,8 @@ function loadProjects(callback) {
         return { id:d.id, nome:d.titulo||d.nome||'', tipo:d.tipo||'', descricao:d.descricao||'', img:d.imagem||d.img||'' };
       });
       renderProjectsGrid();
+      renderCarousel();
+      renderOfertaMosaic();
       renderAdminProjectList();
       if(callback) callback();
     });
@@ -476,6 +478,47 @@ function renderProjectsGrid(){
       grid.appendChild(c);
     });
   });
+}
+
+// ── CAROUSEL (home) ───────────────────────────────────────────────────────────
+function renderCarousel(){
+  var track = document.getElementById('carousel-track');
+  if(!track) return;
+  track.innerHTML = '';
+  if(!siteProjects.length){
+    for(var i=0;i<6;i++){
+      var ph=document.createElement('div'); ph.className='carousel-item';
+      ph.innerHTML='<div class="carousel-item-ph"><p>Em breve</p></div>';
+      track.appendChild(ph);
+    }
+  } else {
+    var all = siteProjects.concat(siteProjects);
+    all.forEach(function(p){
+      var item=document.createElement('div'); item.className='carousel-item';
+      if(p.img){
+        item.innerHTML='<img src="'+p.img+'" alt="'+p.nome+'" loading="lazy">';
+      } else {
+        item.innerHTML='<div class="carousel-item-ph"><p>'+(p.nome||'Projeto')+'</p></div>';
+      }
+      track.appendChild(item);
+    });
+    var dur=Math.max(20,siteProjects.length*8);
+    track.style.animationDuration=dur+'s';
+  }
+}
+
+// ── OFERTA MOSAIC ─────────────────────────────────────────────────────────────
+function renderOfertaMosaic(){
+  var mosaic=document.getElementById('oferta-mosaic');
+  if(!mosaic) return;
+  var imgs=siteProjects.filter(function(p){ return p.img; });
+  if(!imgs.length){ mosaic.innerHTML=''; return; }
+  var six=[];
+  while(six.length<6) six=six.concat(imgs);
+  six=six.slice(0,6);
+  mosaic.innerHTML=six.map(function(p){
+    return '<div class="oferta-mosaic-item"><img src="'+p.img+'" alt="'+p.nome+'" loading="lazy"></div>';
+  }).join('');
 }
 
 function renderAdminProjectList(){

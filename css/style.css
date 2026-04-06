@@ -6,7 +6,7 @@
   --gray-300: #B0B0B0;
   --gray-500: #7A7A7A;
   --gray-700: #444444;
-  --font: 'Montserrat', sans-serif;
+  --font: 'Lexend', sans-serif;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -167,6 +167,15 @@ body {
   display:flex;gap:14px;align-items:center;
 }
 .oferta-list li::before { content:'—';color:var(--gray-300);font-size:11px; }
+.oferta-mosaic {
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+  align-self:stretch;
+}
+.oferta-mosaic-item {
+  aspect-ratio:1;overflow:hidden;background:var(--gray-100);
+}
+.oferta-mosaic-item img { width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease; }
+.oferta-mosaic-item:hover img { transform:scale(1.06); }
 
 /* PÚBLICO */
 .pub-list { list-style:none; }
@@ -458,6 +467,36 @@ footer { background:var(--black);color:var(--white);padding:48px 64px; }
   .admin-row { grid-template-columns:1fr; }
   .post-view { padding:80px 24px; }
   .blog-hero-strip, .blog-empty { padding-left:24px;padding-right:24px; }
+}
+
+/* ── CAROUSEL ────────────────────────────────────────────────────────────────── */
+.carousel-wrap {
+  width:100%;overflow:hidden;position:relative;
+}
+.carousel-track {
+  display:flex;gap:2px;width:max-content;
+  animation:carousel-scroll 30s linear infinite;
+}
+.carousel-track:hover { animation-play-state:paused; }
+@keyframes carousel-scroll {
+  0%   { transform:translateX(0); }
+  100% { transform:translateX(-50%); }
+}
+.carousel-item {
+  flex-shrink:0;width:380px;height:280px;
+  position:relative;overflow:hidden;background:var(--gray-100);
+}
+.carousel-item img {
+  width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease;
+}
+.carousel-item:hover img { transform:scale(1.04); }
+.carousel-item-ph {
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  background:var(--gray-100);
+}
+.carousel-item-ph p { font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--gray-500); }
+@media(max-width:900px){
+  .carousel-item { width:260px;height:200px; }
 }
 
 /* SHARE BUTTONS */
