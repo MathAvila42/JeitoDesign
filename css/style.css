@@ -64,7 +64,7 @@ body {
 .hero {
   position:relative;min-height:100vh;
   display:flex;flex-direction:column;justify-content:flex-end;
-  padding:0 64px 96px;overflow:hidden;
+  padding:0 64px 180px;overflow:hidden;
   background:var(--black);
 }
 .hero-bg {
@@ -168,7 +168,7 @@ body {
 }
 .oferta-list li::before { content:'—';color:var(--gray-300);font-size:11px; }
 .oferta-mosaic {
-  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:0;
   align-self:stretch;
 }
 .oferta-mosaic-item {

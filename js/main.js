@@ -115,10 +115,11 @@ var blogPosts = [];
 var adminLoggedIn = false;
 
 function loadPosts(cb){
-  if(!sb){ renderBlogGrid(); if(cb) cb(); return; }
+  if(!sb){ console.warn('[Supabase] sb não inicializado'); renderBlogGrid(); if(cb) cb(); return; }
   sb.from('posts').select('*').order('created_at',{ascending:false})
     .then(function(res){
-      if(res.error){ console.warn('loadPosts:',res.error); renderBlogGrid(); if(cb) cb(); return; }
+      if(res.error){ console.error('[Supabase] loadPosts erro:',res.error.message,'| código:',res.error.code); renderBlogGrid(); if(cb) cb(); return; }
+      console.log('[Supabase] posts carregados:',res.data&&res.data.length);
       blogPosts=(res.data||[]).map(function(d){
         return {id:d.id,title:d.title||'',tag:d.tag||'Blog',body:d.body||'',img:d.img||'',date:d.date||''};
       });
@@ -396,12 +397,13 @@ function loadProjects(cb){
   if(!sb){ renderProjectsGrid(); renderCarousel(); renderOfertaMosaic(); if(cb) cb(); return; }
   sb.from('projetos').select('*').order('created_at',{ascending:false})
     .then(function(res){
-      if(res.error){ console.warn('loadProjects:',res.error); renderCarousel(); if(cb) cb(); return; }
+      if(res.error){ console.error('[Supabase] loadProjects erro:',res.error.message,'| código:',res.error.code); renderCarousel(); if(cb) cb(); return; }
+      console.log('[Supabase] projetos carregados:',res.data&&res.data.length);
       siteProjects=(res.data||[]).map(function(d){
         return {id:d.id,nome:d.titulo||d.nome||'',tipo:d.tipo||'',descricao:d.descricao||'',img:d.imagem||d.img||''};
       });
       renderProjectsGrid(); renderCarousel(); renderOfertaMosaic(); renderAdminProjectList(); if(cb) cb();
-    }).catch(function(e){ console.warn('loadProjects:',e); renderCarousel(); if(cb) cb(); });
+    }).catch(function(e){ console.error('[Supabase] loadProjects catch:',e); renderCarousel(); if(cb) cb(); });
 }
 
 function renderProjectsGrid(){
