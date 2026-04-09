@@ -12,9 +12,9 @@ try {
 } catch(e){ console.error('[Supabase] erro de init:', e); }
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
-const PAGES = ['home','jeito','servico','projetos','conteudos','contato','admin'];
+const PAGES = ['home','jeito','projetos','conteudos','contato','admin'];
 const PAGE_MAP = {
-  '/':'home', '/home':'home', '/jeito':'jeito', '/servico':'servico',
+  '/':'home', '/home':'home', '/jeito':'jeito',
   '/projetos':'projetos', '/conteudos':'conteudos', '/contato':'contato',
   '/admin':'admin'
 };
@@ -646,7 +646,7 @@ window.addEventListener('DOMContentLoaded', function() {
 (function() {
   var PAGE_MAP = {
     '/': 'home', '/home': 'home', '/jeito': 'jeito',
-    '/servico': 'servico', '/projetos': 'projetos',
+    '/projetos': 'projetos',
     '/conteudos': 'conteudos', '/contato': 'contato', '/admin': 'admin'
   };
   var path = location.pathname.replace(/\/+$/, '') || '/';
